@@ -19,12 +19,12 @@ Getting Started for un-monitored flow
 =====================================
 1. Login to your site
 2. Run "index.html"
-3. Go to http://localhost:63342/sample/index.html?site={siteId}&lptag=false
+3. Add query params to the index.html?site={siteId}&lptag=false
 4. Click the chat button to start chat
 
 Getting Started for monitored flow
 ==================================
 1. Login to your site
 2. Run "index.html"
-3. Go to http://localhost:63342/sample/index.html?site={siteId}&lptag=true
+3. Add query params to the index.html?site={siteId}&lptag=true
 4. Click the chat button to start chat
