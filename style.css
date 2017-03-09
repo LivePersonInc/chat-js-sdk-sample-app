@@ -1,0 +1,24 @@
+body {
+    background: orangered;
+}
+#logs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 150px;
+    padding: 10px 20px;
+    background: #000;
+    color: greenyellow;
+    font: 14px 'Courier New';
+    overflow: auto;
+}
+#chatLines {
+    height: 300px;
+    background: #eceeef;
+    padding: 5px 10px;
+    overflow: auto;
+}
+.wrapper {
+    padding: 10px 20px;
+}
