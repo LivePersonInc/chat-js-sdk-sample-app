@@ -57,13 +57,13 @@ function initChat(onInit) {
         onLine: [addLines, function (data) {
             writeLog("onLine", data);
         }],
-        onState: function (data) {
+        onState: [ updateChatState, function(data) {
             writeLog("onState", data);
-        },
-        onStart: [bindEvents, bindInputForChat, function (data) {
+        }],
+        onStart: [updateChatState, bindEvents, bindInputForChat, function (data) {
             writeLog("onStart", data);
         }],
-        onStop: [unBindInputForChat],
+        onStop: [updateChatState, unBindInputForChat],
         onAddLine: function (data) {
             writeLog("onAddLine", data);
         },
@@ -238,6 +238,11 @@ function sendEmail() {
     if (chat && email) {
         chat.requestTranscript({email: email});
     }
+}
+
+//Sets the local chat state
+function updateChatState(data){
+    chatState = data.state;
 }
 
 function agentTyping(data) {
