@@ -31,6 +31,13 @@
         var site = getURLParams(window.location.search).site;
         var lptag = getURLParams(window.location.search).lptag;
         var tagd = getURLParams(window.location.search).tagd;
+
+        if (tagd) {
+            window.lpTag = window.lpTag || {};
+            lpTag.ovr = lpTag.ovr || {};
+            lpTag.ovr.domain = tagd;
+        }
+
     </script>
     <!-- BEGIN LivePerson Monitor. -->
     <script type="text/javascript">
@@ -56,28 +63,30 @@
                     }
                 },
                 defer: function (t, e) {
-                    0 === e ? (this._defB = this._defB || [], this._defB.push(t)) : 1 === e ? (this._defT = this._defT || [], this._defT.push(t)) : (this._defL = this._defL || [], this._defL.push(t))
+                    0 == e ? (this._defB = this._defB || [], this._defB.push(t)) : 1 == e ? (this._defT = this._defT || [], this._defT.push(t)) : (this._defL = this._defL || [], this._defL.push(t))
                 },
                 load: function (t, e, i) {
+                    var n = this;
                     setTimeout(function () {
-                        this._load(t, e, i)
-                    }.bind(this), 0)
+                        n._load(t, e, i)
+                    }, 0)
                 },
                 _load: function (t, e, i) {
                     var n = t;
+                    t || (n = this.protocol + "//" + (this.ovr && this.ovr.domain ? this.ovr.domain : "lptag.liveperson.net") + "/tag/tag.js?site=" + this.site);
                     var a = document.createElement("script");
-                    t || (n = this.protocol + "//" + (tagd || (this.ovr && this.ovr.domain ? this.ovr.domain : "lptag.liveperson.net")) + "/tag/tag.js?site=" + this.site);
                     a.setAttribute("charset", e ? e : "UTF-8"), i && a.setAttribute("id", i), a.setAttribute("src", n), document.getElementsByTagName("head").item(0).appendChild(a)
                 },
                 init: function () {
                     this._timing = this._timing || {}, this._timing.start = (new Date).getTime();
+                    var t = this;
                     window.attachEvent ? window.attachEvent("onload", function () {
-                        this._domReady("domReady")
-                    }.bind(this)) : (window.addEventListener("DOMContentLoaded", function () {
-                        this._domReady("contReady")
-                    }.bind(this), !1), window.addEventListener("load", function () {
-                        this._domReady("domReady")
-                    }.bind(this), !1)), "undefined" === typeof window._lptStop && this.load()
+                        t._domReady("domReady")
+                    }) : (window.addEventListener("DOMContentLoaded", function () {
+                        t._domReady("contReady")
+                    }, !1), window.addEventListener("load", function () {
+                        t._domReady("domReady")
+                    }, !1)), "undefined" == typeof window._lptStop && this.load()
                 },
                 start: function () {
                     this.autoStart = !0
