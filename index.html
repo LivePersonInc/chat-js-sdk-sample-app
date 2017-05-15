@@ -30,6 +30,14 @@
 
         var site = getURLParams(window.location.search).site;
         var lptag = getURLParams(window.location.search).lptag;
+        var tagd = getURLParams(window.location.search).tagd;
+
+        if (tagd) {
+            window.lpTag = window.lpTag || {};
+            lpTag.ovr = lpTag.ovr || {};
+            lpTag.ovr.domain = tagd;
+        }
+
     </script>
     <!-- BEGIN LivePerson Monitor. -->
     <script type="text/javascript">
