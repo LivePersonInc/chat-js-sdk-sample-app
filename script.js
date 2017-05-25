@@ -113,7 +113,7 @@ function startChat() {
         LETagVisitorId: engagementData.visitorId || engagementData.svid,
         LETagSessionId: engagementData.sessionId || engagementData.ssid,
         LETagContextId: engagementData.engagementDetails.contextId || engagementData.scid,
-        skill: engagementData.engagementDetails.skillId,
+        skill: engagementData.engagementDetails.skillName,
         engagementId: engagementData.engagementDetails.engagementId || engagementData.eid,
         campaignId: engagementData.engagementDetails.campaignId || engagementData.cid,
         language: engagementData.engagementDetails.language || engagementData.lang
