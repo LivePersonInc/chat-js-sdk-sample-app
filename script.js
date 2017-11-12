@@ -1,27 +1,71 @@
-var appKey = "721c180b09eb463d9f3191c41762bb68",
+var appKey = '721c180b09eb463d9f3191c41762bb68',
     logsStarted = false,
     engagementData = {},
+    authenticationData = {},
     getEngagementMaxRetries = 10,
     chatWindow,
     chatContainer,
     chat,
     chatState,
     chatArea,
-    logsLastChild;
+    logsLastChild,
+    ssoKey,
+    redirectUri = 'https://liveperson.net',
+    AUTH0_CLIENT_ID = 'zX55x13W00Tqa6mUSxuzRojUGpUcd27E',
+    AUTH0_DOMAIN = 'livepersonauth.auth0.com';
 
 initDemo();
 
+window.authenticateMethod = function (func) {
+    func({ ssoKey, redirect_uri: redirectUri });
+};
+
 function initDemo() {
-    if (lptag === "true") {
+    if (lptag === 'true') {
         createExternalJsMethodName();
     }
     else {
         initChat(getEngagement);
     }
+    initAuth0();
 }
 
+function initAuth0() {
+    $('docuemnt').ready(function () {
+        var lock = new Auth0Lock(AUTH0_CLIENT_ID, AUTH0_DOMAIN, {
+            auth: {
+                redirectUrl: location.href,
+                responseType: 'id_token',
+                params: {
+                    scope: 'openid'
+                }
+            }
+        });
+
+        lock.on('authenticated', function (authResult) {
+            writeLog(`authentication - ${JSON.stringify(authResult)}`);
+            ssoKey = null;
+            if (authResult && (authResult.accessToken || authResult.idToken)) {
+                ssoKey = authResult.idToken || authResult.accessToken;
+                $('#btn-login').hide();
+            }
+        });
+
+        lock.on('authorization_error', function (err) {
+            ssoKey = null;
+            console.log(err);
+            $('#btn-login').show();
+            writeLog(`Error: ${err.error}. Check the console for further details.`);
+        });
+
+        $('#btn-login').click(function () {
+            lock.show();
+        });
+
+    });
+}
 function createExternalJsMethodName() {
-    window.externalJsMethodName = function(data) {
+    window.externalJsMethodName = function (data) {
         engagementData = data;
         initChat(createWindow);
     }
@@ -31,13 +75,13 @@ function createWindow() {
     chatWindow = $.window({
         width: 650,
         height: 500,
-        title: "Chat Demo",
+        title: 'Chat Demo',
         content: $('#chatWindow').html(),
         footerContent: $('#agentIsTyping').html(),
-        onShow: function(){
+        onShow: function () {
             startChat();
         },
-        onClose: function(){
+        onClose: function () {
             chatWindow = chatContainer = chatArea = null;
         }
     });
@@ -49,45 +93,56 @@ function initChat(onInit) {
         lpNumber: site,
         appKey: appKey,
         onInit: [onInit, function (data) {
-            writeLog("onInit", data);
+            writeLog('onInit', data);
         }],
         onInfo: function (data) {
-            writeLog("onInfo", data);
+            writeLog('onInfo', data);
         },
         onLine: [addLines, function (data) {
-            writeLog("onLine", data);
+            writeLog('onLine', data);
         }],
-        onState: [ updateChatState, function(data) {
-            writeLog("onState", data);
+        onState: [updateChatState, function (data) {
+            writeLog('onState', data);
         }],
         onStart: [updateChatState, bindEvents, bindInputForChat, function (data) {
-            writeLog("onStart", data);
+            writeLog('onStart', data);
         }],
         onStop: [updateChatState, unBindInputForChat],
         onAddLine: function (data) {
-            writeLog("onAddLine", data);
+            writeLog('onAddLine', data);
         },
         onAgentTyping: [agentTyping, function (data) {
-            writeLog("onAgentTyping", data);
+            writeLog('onAgentTyping', data);
         }],
         onRequestChat: function (data) {
-            writeLog("onRequestChat", data);
+            writeLog('onRequestChat', data);
         },
         onEngagement: function (data) {
-            if ("Available" === data.status) {
+            if ('Available' === data.status) {
                 createEngagement(data);
-                writeLog("onEngagement", data);
+                writeLog('onEngagement', data);
             }
-            else if ("NotAvailable" === data.status) {
-                writeLog("Agent is not available", data);
+            else if ('NotAvailable' === data.status) {
+                writeLog('Agent is not available', data);
             }
             else {
                 if (getEngagementMaxRetries > 0) {
-                    writeLog("Failed to get engagement. Retry number " + getEngagementMaxRetries, data);
+                    writeLog('Failed to get engagement. Retry number ' + getEngagementMaxRetries, data);
                     getEngagement();
                     getEngagementMaxRetries--;
                 }
             }
+        },
+        onAuthentication: function (data) {
+            if (data && data.participantId) {
+                writeLog('authenticate success - ', data);
+                authenticationData.participantId = data.participantId;
+                authenticationData.conversationId = data.conversationId;
+            }
+            createWindow();
+        },
+        onAuthenticationFail: function (error) {
+            writeLog('authenticate error - ', error);
         }
     };
     chat = new lpTag.taglets.ChatOverRestAPI(chatConfig);
@@ -98,10 +153,17 @@ function getEngagement() {
 }
 
 function createEngagement(data) {
-    var $engagement = $('<button id="engagement" class="btn-lg">Start Chat</button>');
-    $engagement.click(function(){
+    var title = 'Start Chat',
+        isAuthChat = data.engagementDetails && data.engagementDetails.connectorId && ssoKey;
+
+    if (isAuthChat) {
+        title = 'Start Authenticated Chat';
+    }
+
+    var $engagement = $(`<button id="engagement" class="btn-lg">${title}</button>`);
+    $engagement.click(function () {
         engagementData = data;
-        createWindow();
+        isAuthChat ? authenticate() : createWindow();
     });
     $engagement.appendTo($('#engagementPlaceholder'));
 }
@@ -118,9 +180,29 @@ function startChat() {
         campaignId: engagementData.engagementDetails.campaignId || engagementData.cid,
         language: engagementData.engagementDetails.language || engagementData.lang
     };
+    if (authenticationData.participantId) {
+        chatRequest.participantId = authenticationData.participantId;
+        chatRequest.conversationId = authenticationData.conversationId;
+    }
     chat.requestChat(chatRequest);
 }
 
+function authenticate() {
+    if (!ssoKey) {
+        return writeLog('authenticate didn\'t received sso key', ssoKey);
+    }
+    engagementData = engagementData || {};
+    engagementData.engagementDetails = engagementData.engagementDetails || {};
+    var data = {
+        ssoKey,
+        redirectUri,
+        engagementId: parseInt(engagementData.engagementDetails.engagementId),
+        contextId: engagementData.engagementDetails.contextId,
+        sessionId: engagementData.sessionId,
+        visitorId: engagementData.visitorId
+    };
+    chat.authenticate(data);
+}
 //Add lines to the chat from events
 function addLines(data) {
     var linesAdded = false;
@@ -139,8 +221,8 @@ function addLines(data) {
 
 //Create a chat line
 function createLine(line) {
-    var div = document.createElement("P");
-    div.innerHTML = "<b>" + line.by + "</b>: ";
+    var div = document.createElement('P');
+    div.innerHTML = '<b>' + line.by + '</b>: ';
     if (line.source === 'visitor') {
         div.appendChild(document.createTextNode(line.text));
     } else {
@@ -181,11 +263,11 @@ function sendLine() {
         chat.addLine({
             text: text,
             error: function () {
-                line.className = "error";
+                line.className = 'error';
             }
         });
         addLineToDom(line);
-        $textline.val("");
+        $textline.val('');
         scrollToBottom();
     }
 }
@@ -195,7 +277,7 @@ function keyChanges(e) {
     e = e || window.event;
     var key = e.keyCode || e.which;
     if (key == 13) {
-        if (e.type == "keyup") {
+        if (e.type == 'keyup') {
             sendLine();
             setVisitorTyping(false);
         }
@@ -208,7 +290,7 @@ function keyChanges(e) {
 //Set the visitor typing state
 function setVisitorTyping(typing) {
     if (chat) {
-        chat.setVisitorTyping({typing: typing});
+        chat.setVisitorTyping({ typing: typing });
     }
 }
 
@@ -216,7 +298,7 @@ function setVisitorTyping(typing) {
 function setVisitorName() {
     var name = chatContainer.find('#visitorName').val();
     if (chat && name) {
-        chat.setVisitorName({visitorName: name});
+        chat.setVisitorName({ visitorName: name });
     }
 }
 
@@ -236,25 +318,25 @@ function endChat() {
 function sendEmail() {
     var email = chatContainer.find('#emailAddress').val();
     if (chat && email) {
-        chat.requestTranscript({email: email});
+        chat.requestTranscript({ email: email });
     }
 }
 
 //Sets the local chat state
-function updateChatState(data){
+function updateChatState(data) {
     chatState = data.state;
 }
 
 function agentTyping(data) {
     if (data.agentTyping) {
-        chatWindow.setFooterContent("Agent is typing...");
+        chatWindow.setFooterContent('Agent is typing...');
     } else {
-        chatWindow.setFooterContent("");
+        chatWindow.setFooterContent('');
     }
 }
 
 function bindInputForChat() {
-    chatContainer.find('#sendButton').removeAttr("disabled").click(sendLine);
+    chatContainer.find('#sendButton').removeAttr('disabled').click(sendLine);
     chatContainer.find('#chatInput').keyup(keyChanges).keydown(keyChanges);
 }
 
@@ -270,22 +352,22 @@ function bindEvents() {
 }
 
 function writeLog(logName, data) {
-    var log = document.createElement("DIV");
+    var log = document.createElement('DIV');
     try {
         data = typeof data === 'string' ? data : JSON.stringify(data);
     } catch (exc) {
         return;
     }
     var date = new Date();
-    date = "" + (date.getHours() > 10 ? date.getHours() : "0" + date.getHours()) +
-        ":" + (date.getMinutes() > 10 ? date.getMinutes() : "0" + date.getMinutes()) +
-        ":" + (date.getSeconds() > 10 ? date.getSeconds() : "0" + date.getSeconds());
-    log.innerHTML = date + " " + logName + " : " + data;
+    date = '' + (date.getHours() > 10 ? date.getHours() : '0' + date.getHours()) +
+        ':' + (date.getMinutes() > 10 ? date.getMinutes() : '0' + date.getMinutes()) +
+        ':' + (date.getSeconds() > 10 ? date.getSeconds() : '0' + date.getSeconds());
+    log.innerHTML = date + ' ' + logName + ' : ' + data;
     if (!logsStarted) {
-        document.getElementById("logs").appendChild(log);
+        document.getElementById('logs').appendChild(log);
         logsStarted = true;
     } else {
-        document.getElementById("logs").insertBefore(log, logsLastChild);
+        document.getElementById('logs').insertBefore(log, logsLastChild);
     }
     logsLastChild = log;
 

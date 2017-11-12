@@ -1,153 +1,167 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="user-scalable=0, width=device-width, initial-scale=1.0,  minimum-scale=1.0, maximum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=100">
-    <title>Liveperson Chat Demo</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
-          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-    <link id="jquery_ui_theme_loader" type="text/css" href="js/jquery/themes/black-tie/jquery-ui.css" rel="stylesheet"/>
-    <link type="text/css" href="js/jquery/window/css/jquery.window.css" rel="stylesheet"/>
-    <link type="text/css" href="style.css" rel="stylesheet"/>
-    <script>
-        function getURLParams(search) {
-            var queryParams = {}, queryArray, singleQuery;
-            queryArray = search.substr(1).split("&");
-            for (var i = 0; i < queryArray.length; i++) {
-                if (queryArray[i].indexOf("=") > -0) {
-                    singleQuery = queryArray[i].split("=");
-                    if (singleQuery.length == 2) {
-                        queryParams[decodeURIComponent(singleQuery[0])] = decodeURIComponent(singleQuery[1]);
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="user-scalable=0, width=device-width, initial-scale=1.0,  minimum-scale=1.0, maximum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=100">
+        <title>Liveperson Chat Demo</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+              integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+              crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+              integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+              crossorigin="anonymous">
+
+        <link type="text/css" href="style.css" rel="stylesheet"/>
+
+        <link type="text/css" href="js/jquery/themes/black-tie/jquery-ui.css" rel="stylesheet"/>
+
+        <link type="text/css" href="js/jquery/window/css/jquery.window.css" rel="stylesheet"/>
+
+        <script>
+            function getURLParams(search) {
+                var queryParams = {}, queryArray, singleQuery;
+                queryArray = search.substr(1).split('&');
+                for (var i = 0; i < queryArray.length; i++) {
+                    if (queryArray[i].indexOf('=') > -0) {
+                        singleQuery = queryArray[i].split('=');
+                        if (singleQuery.length == 2) {
+                            queryParams[decodeURIComponent(singleQuery[0])] = decodeURIComponent(singleQuery[1]);
+                        }
                     }
                 }
+                return queryParams;
             }
-            return queryParams;
-        }
 
-        var site = getURLParams(window.location.search).site;
-        var lptag = getURLParams(window.location.search).lptag;
-        var tagd = getURLParams(window.location.search).tagd;
+            var site = getURLParams(window.location.search).site;
+            var lptag = getURLParams(window.location.search).lptag;
+            var tagd = getURLParams(window.location.search).tagd;
 
-        if (tagd) {
-            window.lpTag = window.lpTag || {};
-            lpTag.ovr = lpTag.ovr || {};
-            lpTag.ovr.domain = tagd;
-        }
+            if (tagd) {
+                window.lpTag = window.lpTag || {};
+                lpTag.ovr = lpTag.ovr || {};
+                lpTag.ovr.domain = tagd;
+            }
 
-    </script>
-    <!-- BEGIN LivePerson Monitor. -->
-    <script type="text/javascript">
-        if (lptag === "true") {
-            window.lpTag = window.lpTag || {}, "undefined" == typeof window.lpTag._tagCount ? (window.lpTag = {
-                site: site || "",
-                section: lpTag.section || "",
-                tagletSection: lpTag.tagletSection || null,
-                autoStart: lpTag.autoStart !== !1,
-                ovr: lpTag.ovr || {},
-                _v: "1.7.0",
-                _tagCount: 1,
-                protocol: "https:",
-                events: {
-                    bind: function (t, e, i) {
-                        lpTag.defer(function () {
-                            lpTag.events.bind(t, e, i)
+        </script>
+        <!-- BEGIN LivePerson Monitor. -->
+        <script type="text/javascript">
+            if (lptag === 'true') {
+                window.lpTag = window.lpTag || {}, 'undefined' == typeof window.lpTag._tagCount ? (window.lpTag = {
+                    site: site || '',
+                    section: lpTag.section || '',
+                    tagletSection: lpTag.tagletSection || null,
+                    autoStart: lpTag.autoStart !== !1,
+                    ovr: lpTag.ovr || {},
+                    _v: '1.7.0',
+                    _tagCount: 1,
+                    protocol: 'https:',
+                    events: {
+                        bind: function (t, e, i) {
+                            lpTag.defer(function () {
+                                lpTag.events.bind(t, e, i)
+                            }, 0)
+                        }, trigger: function (t, e, i) {
+                            lpTag.defer(function () {
+                                lpTag.events.trigger(t, e, i)
+                            }, 1)
+                        }
+                    },
+                    defer: function (t, e) {
+                        0 == e ? (this._defB = this._defB || [], this._defB.push(t)) : 1 == e ? (this._defT = this._defT || [], this._defT.push(t)) : (this._defL = this._defL || [], this._defL.push(t))
+                    },
+                    load: function (t, e, i) {
+                        var n = this;
+                        setTimeout(function () {
+                            n._load(t, e, i)
                         }, 0)
-                    }, trigger: function (t, e, i) {
-                        lpTag.defer(function () {
-                            lpTag.events.trigger(t, e, i)
-                        }, 1)
-                    }
-                },
-                defer: function (t, e) {
-                    0 == e ? (this._defB = this._defB || [], this._defB.push(t)) : 1 == e ? (this._defT = this._defT || [], this._defT.push(t)) : (this._defL = this._defL || [], this._defL.push(t))
-                },
-                load: function (t, e, i) {
-                    var n = this;
-                    setTimeout(function () {
-                        n._load(t, e, i)
-                    }, 0)
-                },
-                _load: function (t, e, i) {
-                    var n = t;
-                    t || (n = this.protocol + "//" + (this.ovr && this.ovr.domain ? this.ovr.domain : "lptag.liveperson.net") + "/tag/tag.js?site=" + this.site);
-                    var a = document.createElement("script");
-                    a.setAttribute("charset", e ? e : "UTF-8"), i && a.setAttribute("id", i), a.setAttribute("src", n), document.getElementsByTagName("head").item(0).appendChild(a)
-                },
-                init: function () {
-                    this._timing = this._timing || {}, this._timing.start = (new Date).getTime();
-                    var t = this;
-                    window.attachEvent ? window.attachEvent("onload", function () {
-                        t._domReady("domReady")
-                    }) : (window.addEventListener("DOMContentLoaded", function () {
-                        t._domReady("contReady")
-                    }, !1), window.addEventListener("load", function () {
-                        t._domReady("domReady")
-                    }, !1)), "undefined" == typeof window._lptStop && this.load()
-                },
-                start: function () {
-                    this.autoStart = !0
-                },
-                _domReady: function (t) {
-                    this.isDom || (this.isDom = !0, this.events.trigger("LPT", "DOM_READY", {t: t})), this._timing[t] = (new Date).getTime()
-                },
-                vars: lpTag.vars || [],
-                dbs: lpTag.dbs || [],
-                ctn: lpTag.ctn || [],
-                sdes: lpTag.sdes || [],
-                ev: lpTag.ev || []
-            }, lpTag.init()) : window.lpTag._tagCount += 1;
-        }
-    </script>
-    <!-- END LivePerson Monitor. -->
-</head>
-<body>
-<div id="engagementPlaceholder"></div>
-<div id="chatWindow" class="hidden">
-    <div class="wrapper">
-        <p>
+                    },
+                    _load: function (t, e, i) {
+                        var n = t;
+                        t || (n = this.protocol + '//' + (this.ovr && this.ovr.domain ? this.ovr.domain : 'lptag.liveperson.net') + '/tag/tag.js?site=' + this.site);
+                        var a = document.createElement('script');
+                        a.setAttribute('charset', e ? e : 'UTF-8'), i && a.setAttribute('id', i), a.setAttribute('src', n), document.getElementsByTagName('head').item(0).appendChild(a)
+                    },
+                    init: function () {
+                        this._timing = this._timing || {}, this._timing.start = (new Date).getTime();
+                        var t = this;
+                        window.attachEvent ? window.attachEvent('onload', function () {
+                            t._domReady('domReady')
+                        }) : (window.addEventListener('DOMContentLoaded', function () {
+                            t._domReady('contReady')
+                        }, !1), window.addEventListener('load', function () {
+                            t._domReady('domReady')
+                        }, !1)), 'undefined' == typeof window._lptStop && this.load()
+                    },
+                    start: function () {
+                        this.autoStart = !0
+                    },
+                    _domReady: function (t) {
+                        this.isDom || (this.isDom = !0, this.events.trigger('LPT', 'DOM_READY', { t: t })), this._timing[t] = (new Date).getTime()
+                    },
+                    vars: lpTag.vars || [],
+                    dbs: lpTag.dbs || [],
+                    ctn: lpTag.ctn || [],
+                    sdes: lpTag.sdes || [],
+                    ev: lpTag.ev || []
+                }, lpTag.init()) : window.lpTag._tagCount += 1;
+            }
+        </script>
+        <!-- END LivePerson Monitor. -->
+    </head>
+    <body>
+        <div id="engagementPlaceholder" style="display: inline-block;"></div>
+        <button id="btn-login" class="btn btn-primary pull-right">
+            Log In
+        </button>
 
-        <form class="form-inline" onsubmit="return false">
-            <div class="form-group">
-                <input id="textline" type="text" class="form-control input-sm" placeholder="Enter text here..."/>
-                <button id="sendButton" class="btn btn-sm btn-primary" disabled>Send</button>
+        <div id="chatWindow" class="hidden">
+            <div class="wrapper">
+                <p>
+
+                <form class="form-inline" onsubmit="return false">
+                    <div class="form-group">
+                        <input id="textline" type="text" class="form-control input-sm"
+                               placeholder="Enter text here..."/>
+                        <button id="sendButton" class="btn btn-sm btn-primary" disabled>Send</button>
+                    </div>
+                </form>
+                </p>
+
+                <p class="row">
+
+                <div id="chatLines"></div>
+                </p>
+
+                <p>
+
+                <form class="form-inline" onsubmit="return false">
+                    <div class="form-group">
+                        <input type="text" id="visitorName" class="form-control input-sm" placeholder="Enter name..."/>
+                        <button id="setvisitorName" class="btn btn-sm">Set Name</button>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="emailAddress" class="form-control input-sm"
+                               placeholder="Enter email address..."/>
+                        <button id="sendTranscript" class="btn btn-sm">Send Transcript</button>
+                    </div>
+                    <div class="form-group">
+                        <button id="closeChat" class="btn btn-danger btn-sm">End Chat</button>
+                    </div>
+                </form>
+                </p>
             </div>
-        </form>
-        </p>
+        </div>
+        <div id="agentIsTyping" class="hidden"></div>
+        <div id="logs"></div>
+    </body>
 
-        <p class="row">
-
-        <div id="chatLines"></div>
-        </p>
-
-        <p>
-
-        <form class="form-inline" onsubmit="return false">
-            <div class="form-group">
-                <input type="text" id="visitorName" class="form-control input-sm" placeholder="Enter name..."/>
-                <button id="setvisitorName" class="btn btn-sm">Set Name</button>
-            </div>
-            <div class="form-group">
-                <input type="email" id="emailAddress" class="form-control input-sm"
-                       placeholder="Enter email address..."/>
-                <button id="sendTranscript" class="btn btn-sm">Send Transcript</button>
-            </div>
-            <div class="form-group">
-                <button id="closeChat" class="btn btn-danger btn-sm">End Chat</button>
-            </div>
-        </form>
-        </p>
-    </div>
-</div>
-<div id="agentIsTyping" class="hidden"></div>
-<div id="logs"></div>
-</body>
-<script type="text/javascript" src="js/jquery/jquery.js"></script>
-<script type="text/javascript" src="js/jquery/jquery-ui.js"></script>
-<script type="text/javascript" src="js/jquery/window/jquery.window.js"></script>
-<script type="text/javascript" src="https://lpcdn.lpsnmedia.net/api/chat/public/lpChat.min.js"></script>
-<script src="script.js"></script>
+    <script type="text/javascript" src="js/jquery/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery/jquery-ui.js"></script>
+    <script type="text/javascript" src="js/jquery/window/jquery.window.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0/8.10.1/auth0.min.js"></script>
+    <script src="https://cdn.auth0.com/js/lock/10.20/lock.min.js"></script>
+    <script type="text/javascript" src="https://lpcdn.lpsnmedia.net/api/chat/public/lpChat.min.js"></script>
+    <script src="script.js"></script>
 </html>
