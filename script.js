@@ -10,14 +10,13 @@ var appKey = '721c180b09eb463d9f3191c41762bb68',
     chatArea,
     logsLastChild,
     ssoKey,
-    redirectUri = 'https://liveperson.net',
     AUTH0_CLIENT_ID = 'zX55x13W00Tqa6mUSxuzRojUGpUcd27E',
     AUTH0_DOMAIN = 'livepersonauth.auth0.com';
 
 initDemo();
 
-window.authenticateMethod = function (func) {
-    func({ ssoKey, redirect_uri: redirectUri });
+window.authenticateMethod = function(func) {
+    func({ ssoKey, redirect_uri: location.href });
 };
 
 function initDemo() {
@@ -28,44 +27,52 @@ function initDemo() {
         initChat(getEngagement);
     }
     initAuth0();
+
+    if(!ssoKey) {
+        var code = getURLParams(window.location.search).code;
+        if(code) {
+            ssoKey = code;
+        }
+    }
 }
 
 function initAuth0() {
-    $('docuemnt').ready(function () {
+    $('docuemnt').ready(function() {
         var lock = new Auth0Lock(AUTH0_CLIENT_ID, AUTH0_DOMAIN, {
             auth: {
                 redirectUrl: location.href,
-                responseType: 'id_token',
+                responseType: 'code',
                 params: {
                     scope: 'openid'
                 }
             }
         });
 
-        lock.on('authenticated', function (authResult) {
+        lock.on('authenticated', function(authResult) {
             writeLog(`authentication - ${JSON.stringify(authResult)}`);
             ssoKey = null;
+            console.log(authResult);
             if (authResult && (authResult.accessToken || authResult.idToken)) {
                 ssoKey = authResult.idToken || authResult.accessToken;
                 $('#btn-login').hide();
             }
         });
 
-        lock.on('authorization_error', function (err) {
+        lock.on('authorization_error', function(err) {
             ssoKey = null;
             console.log(err);
             $('#btn-login').show();
             writeLog(`Error: ${err.error}. Check the console for further details.`);
         });
 
-        $('#btn-login').click(function () {
+        $('#btn-login').click(function() {
             lock.show();
         });
 
     });
 }
 function createExternalJsMethodName() {
-    window.externalJsMethodName = function (data) {
+    window.externalJsMethodName = function(data) {
         engagementData = data;
         initChat(createWindow);
     }
@@ -78,10 +85,10 @@ function createWindow() {
         title: 'Chat Demo',
         content: $('#chatWindow').html(),
         footerContent: $('#agentIsTyping').html(),
-        onShow: function () {
+        onShow: function() {
             startChat();
         },
-        onClose: function () {
+        onClose: function() {
             chatWindow = chatContainer = chatArea = null;
         }
     });
@@ -92,32 +99,32 @@ function initChat(onInit) {
     var chatConfig = {
         lpNumber: site,
         appKey: appKey,
-        onInit: [onInit, function (data) {
+        onInit: [onInit, function(data) {
             writeLog('onInit', data);
         }],
-        onInfo: function (data) {
+        onInfo: function(data) {
             writeLog('onInfo', data);
         },
-        onLine: [addLines, function (data) {
+        onLine: [addLines, function(data) {
             writeLog('onLine', data);
         }],
-        onState: [updateChatState, function (data) {
+        onState: [updateChatState, function(data) {
             writeLog('onState', data);
         }],
-        onStart: [updateChatState, bindEvents, bindInputForChat, function (data) {
+        onStart: [updateChatState, bindEvents, bindInputForChat, function(data) {
             writeLog('onStart', data);
         }],
         onStop: [updateChatState, unBindInputForChat],
-        onAddLine: function (data) {
+        onAddLine: function(data) {
             writeLog('onAddLine', data);
         },
-        onAgentTyping: [agentTyping, function (data) {
+        onAgentTyping: [agentTyping, function(data) {
             writeLog('onAgentTyping', data);
         }],
-        onRequestChat: function (data) {
+        onRequestChat: function(data) {
             writeLog('onRequestChat', data);
         },
-        onEngagement: function (data) {
+        onEngagement: function(data) {
             if ('Available' === data.status) {
                 createEngagement(data);
                 writeLog('onEngagement', data);
@@ -133,7 +140,7 @@ function initChat(onInit) {
                 }
             }
         },
-        onAuthentication: function (data) {
+        onAuthentication: function(data) {
             if (data && data.participantId) {
                 writeLog('authenticate success - ', data);
                 authenticationData.participantId = data.participantId;
@@ -141,7 +148,7 @@ function initChat(onInit) {
             }
             createWindow();
         },
-        onAuthenticationFail: function (error) {
+        onAuthenticationFail: function(error) {
             writeLog('authenticate error - ', error);
         }
     };
@@ -161,7 +168,7 @@ function createEngagement(data) {
     }
 
     var $engagement = $(`<button id="engagement" class="btn-lg">${title}</button>`);
-    $engagement.click(function () {
+    $engagement.click(function() {
         engagementData = data;
         isAuthChat ? authenticate() : createWindow();
     });
@@ -195,7 +202,7 @@ function authenticate() {
     engagementData.engagementDetails = engagementData.engagementDetails || {};
     var data = {
         ssoKey,
-        redirectUri,
+        redirectUri: location.href,
         engagementId: parseInt(engagementData.engagementDetails.engagementId),
         contextId: engagementData.engagementDetails.contextId,
         sessionId: engagementData.sessionId,
@@ -262,7 +269,7 @@ function sendLine() {
 
         chat.addLine({
             text: text,
-            error: function () {
+            error: function() {
                 line.className = 'error';
             }
         });
@@ -307,7 +314,7 @@ function endChat() {
     if (chat) {
         chat.endChat({
             disposeVisitor: true,
-            success: function () {
+            success: function() {
                 chatWindow.close();
             }
         });
