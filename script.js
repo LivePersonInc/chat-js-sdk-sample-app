@@ -10,8 +10,8 @@ var appKey = '721c180b09eb463d9f3191c41762bb68',
     chatArea,
     logsLastChild,
     ssoKey,
-    AUTH0_CLIENT_ID = 'zX55x13W00Tqa6mUSxuzRojUGpUcd27E',
-    AUTH0_DOMAIN = 'livepersonauth.auth0.com';
+    AUTH0_CLIENT_ID = '', // YOUR AUTH0 CLIENT ID
+    AUTH0_DOMAIN = ''; // YOUR AUTH0 DOMAIN
 
 initDemo();
 
@@ -26,48 +26,66 @@ function initDemo() {
     else {
         initChat(getEngagement);
     }
-    initAuth0();
 
-    if(!ssoKey) {
-        var code = getURLParams(window.location.search).code;
-        if(code) {
-            ssoKey = code;
-        }
+
+    let code = getURLParams(window.location.search).code;
+    if (!ssoKey && code) {
+        ssoKey = code;
+        $('#auth-details').text(`Your code: ${code}`).show();
+    }
+    else if(AUTH0_CLIENT_ID.length > 0 && AUTH0_DOMAIN.length > 0){
+        initAuth0();
     }
 }
 
 function initAuth0() {
     $('docuemnt').ready(function() {
-        var lock = new Auth0Lock(AUTH0_CLIENT_ID, AUTH0_DOMAIN, {
+        let theme = {
+            logo: 'https://avatars2.githubusercontent.com/u/996360?s=280&v=4',
+            primaryColor: '#f7710e'
+        };
+
+        let implicit = new Auth0Lock(AUTH0_CLIENT_ID, AUTH0_DOMAIN, {
+            theme,
+            allowForgotPassword: false,
+            languageDictionary: {
+                title: 'Implicit-flow sample'
+            },
+            container: 'implicit-flow',
             auth: {
                 redirectUrl: location.href,
-                responseType: 'code',
-                params: {
-                    scope: 'openid'
-                }
+                responseType: 'id_token'
             }
         });
 
-        lock.on('authenticated', function(authResult) {
+        let code = new Auth0Lock(AUTH0_CLIENT_ID, AUTH0_DOMAIN, {
+            theme,
+            allowForgotPassword: false,
+            languageDictionary: {
+                title: 'Code-flow sample'
+            },
+            container: 'code-flow',
+            auth: {
+                redirectUrl: location.href,
+                responseType: 'code'
+            }
+        });
+
+        implicit.on('authenticated', function(authResult) {
             writeLog(`authentication - ${JSON.stringify(authResult)}`);
-            ssoKey = null;
-            console.log(authResult);
-            if (authResult && (authResult.accessToken || authResult.idToken)) {
-                ssoKey = authResult.idToken || authResult.accessToken;
-                $('#btn-login').hide();
-            }
+            ssoKey = authResult.idToken;
+            $('#auth-details').text(`Your JWT: ${ssoKey}`).show();
+            implicit.hide();
+            code.hide();
         });
 
-        lock.on('authorization_error', function(err) {
+        implicit.on('authorization_error', function(err) {
             ssoKey = null;
-            console.log(err);
-            $('#btn-login').show();
             writeLog(`Error: ${err.error}. Check the console for further details.`);
         });
 
-        $('#btn-login').click(function() {
-            lock.show();
-        });
+        implicit.show();
+        code.show();
 
     });
 }
