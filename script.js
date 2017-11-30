@@ -223,6 +223,7 @@ function authenticate() {
         redirectUri: location.href,
         engagementId: parseInt(engagementData.engagementDetails.engagementId),
         contextId: engagementData.engagementDetails.contextId,
+        authChatConnId: engagementData.engagementDetails.connectorId,
         sessionId: engagementData.sessionId,
         visitorId: engagementData.visitorId
     };
