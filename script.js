@@ -15,7 +15,7 @@ var appKey = '721c180b09eb463d9f3191c41762bb68',
 
 initDemo();
 
-window.authenticateMethod = function(func) {
+window.authenticateMethod = function (func) {
     func({ ssoKey, redirect_uri: location.href });
 };
 
@@ -33,13 +33,13 @@ function initDemo() {
         ssoKey = code;
         $('#auth-details').text(`Your code: ${code}`).show();
     }
-    else if(AUTH0_CLIENT_ID.length > 0 && AUTH0_DOMAIN.length > 0){
+    else if (AUTH0_CLIENT_ID.length > 0 && AUTH0_DOMAIN.length > 0) {
         initAuth0();
     }
 }
 
 function initAuth0() {
-    $('docuemnt').ready(function() {
+    $('docuemnt').ready(function () {
         let theme = {
             logo: 'https://avatars2.githubusercontent.com/u/996360?s=280&v=4',
             primaryColor: '#f7710e'
@@ -71,7 +71,7 @@ function initAuth0() {
             }
         });
 
-        implicit.on('authenticated', function(authResult) {
+        implicit.on('authenticated', function (authResult) {
             writeLog(`authentication - ${JSON.stringify(authResult)}`);
             ssoKey = authResult.idToken;
             $('#auth-details').text(`Your JWT: ${ssoKey}`).show();
@@ -79,7 +79,7 @@ function initAuth0() {
             code.hide();
         });
 
-        implicit.on('authorization_error', function(err) {
+        implicit.on('authorization_error', function (err) {
             ssoKey = null;
             writeLog(`Error: ${err.error}. Check the console for further details.`);
         });
@@ -89,10 +89,27 @@ function initAuth0() {
 
     });
 }
+
 function createExternalJsMethodName() {
-    window.externalJsMethodName = function(data) {
-        engagementData = data;
-        initChat(createWindow);
+    window.externalJsMethodName = function (data) {
+        engagementData = {
+            engagementDetails: {
+                engagementId: data.eid,
+                contextId: data.scid,
+                connectorId: data.connector && data.connector.id,
+            },
+            sessionId: data.svid,
+            visitorId: data.ssid
+        };
+
+        var isAuthChat = engagementData.engagementDetails && engagementData.engagementDetails.connectorId && ssoKey;
+        if (isAuthChat) {
+            initChat(authenticate);
+        }
+        else {
+            initChat(createWindow);
+
+        }
     }
 }
 
@@ -103,10 +120,10 @@ function createWindow() {
         title: 'Chat Demo',
         content: $('#chatWindow').html(),
         footerContent: $('#agentIsTyping').html(),
-        onShow: function() {
+        onShow: function () {
             startChat();
         },
-        onClose: function() {
+        onClose: function () {
             chatWindow = chatContainer = chatArea = null;
         }
     });
@@ -117,32 +134,32 @@ function initChat(onInit) {
     var chatConfig = {
         lpNumber: site,
         appKey: appKey,
-        onInit: [onInit, function(data) {
+        onInit: [onInit, function (data) {
             writeLog('onInit', data);
         }],
-        onInfo: function(data) {
+        onInfo: function (data) {
             writeLog('onInfo', data);
         },
-        onLine: [addLines, function(data) {
+        onLine: [addLines, function (data) {
             writeLog('onLine', data);
         }],
-        onState: [updateChatState, function(data) {
+        onState: [updateChatState, function (data) {
             writeLog('onState', data);
         }],
-        onStart: [updateChatState, bindEvents, bindInputForChat, function(data) {
+        onStart: [updateChatState, bindEvents, bindInputForChat, function (data) {
             writeLog('onStart', data);
         }],
         onStop: [updateChatState, unBindInputForChat],
-        onAddLine: function(data) {
+        onAddLine: function (data) {
             writeLog('onAddLine', data);
         },
-        onAgentTyping: [agentTyping, function(data) {
+        onAgentTyping: [agentTyping, function (data) {
             writeLog('onAgentTyping', data);
         }],
-        onRequestChat: function(data) {
+        onRequestChat: function (data) {
             writeLog('onRequestChat', data);
         },
-        onEngagement: function(data) {
+        onEngagement: function (data) {
             if ('Available' === data.status) {
                 createEngagement(data);
                 writeLog('onEngagement', data);
@@ -158,7 +175,7 @@ function initChat(onInit) {
                 }
             }
         },
-        onAuthentication: function(data) {
+        onAuthentication: function (data) {
             if (data && data.participantId) {
                 writeLog('authenticate success - ', data);
                 authenticationData.participantId = data.participantId;
@@ -166,7 +183,7 @@ function initChat(onInit) {
             }
             createWindow();
         },
-        onAuthenticationFail: function(error) {
+        onAuthenticationFail: function (error) {
             writeLog('authenticate error - ', error);
         }
     };
@@ -186,7 +203,7 @@ function createEngagement(data) {
     }
 
     var $engagement = $(`<button id="engagement" class="btn-lg">${title}</button>`);
-    $engagement.click(function() {
+    $engagement.click(function () {
         engagementData = data;
         isAuthChat ? authenticate() : createWindow();
     });
@@ -212,12 +229,13 @@ function startChat() {
     chat.requestChat(chatRequest);
 }
 
-function authenticate() {
+function authenticate(lpData) {
     if (!ssoKey) {
         return writeLog('authenticate didn\'t received sso key', ssoKey);
     }
-    engagementData = engagementData || {};
+    engagementData = engagementData || lpData;
     engagementData.engagementDetails = engagementData.engagementDetails || {};
+
     var data = {
         ssoKey,
         redirectUri: location.href,
@@ -288,7 +306,7 @@ function sendLine() {
 
         chat.addLine({
             text: text,
-            error: function() {
+            error: function () {
                 line.className = 'error';
             }
         });
@@ -333,7 +351,7 @@ function endChat() {
     if (chat) {
         chat.endChat({
             disposeVisitor: true,
-            success: function() {
+            success: function () {
                 chatWindow.close();
             }
         });
