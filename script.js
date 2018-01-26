@@ -1,7 +1,7 @@
-var appKey = "721c180b09eb463d9f3191c41762bb68",
+var appKey = '721c180b09eb463d9f3191c41762bb68',
     logsStarted = false,
     engagementData = {},
-    getEngagementMaxRetries = 10,
+    getEngagementMaxRetries = 25,
     chatWindow,
     chatContainer,
     chat,
@@ -12,7 +12,7 @@ var appKey = "721c180b09eb463d9f3191c41762bb68",
 initDemo();
 
 function initDemo() {
-    if (lptag === "true") {
+    if (lptag === 'true') {
         createExternalJsMethodName();
     }
     else {
@@ -31,7 +31,7 @@ function createWindow() {
     chatWindow = $.window({
         width: 650,
         height: 500,
-        title: "Chat Demo",
+        title: 'Chat Demo',
         content: $('#chatWindow').html(),
         footerContent: $('#agentIsTyping').html(),
         onShow: function(){
@@ -49,42 +49,42 @@ function initChat(onInit) {
         lpNumber: site,
         appKey: appKey,
         onInit: [onInit, function (data) {
-            writeLog("onInit", data);
+            writeLog('onInit', data);
         }],
         onInfo: function (data) {
-            writeLog("onInfo", data);
+            writeLog('onInfo', data);
         },
         onLine: [addLines, function (data) {
-            writeLog("onLine", data);
+            writeLog('onLine', data);
         }],
         onState: [ updateChatState, function(data) {
-            writeLog("onState", data);
+            writeLog('onState', data);
         }],
         onStart: [updateChatState, bindEvents, bindInputForChat, function (data) {
-            writeLog("onStart", data);
+            writeLog('onStart', data);
         }],
         onStop: [updateChatState, unBindInputForChat],
         onAddLine: function (data) {
-            writeLog("onAddLine", data);
+            writeLog('onAddLine', data);
         },
         onAgentTyping: [agentTyping, function (data) {
-            writeLog("onAgentTyping", data);
+            writeLog('onAgentTyping', data);
         }],
         onRequestChat: function (data) {
-            writeLog("onRequestChat", data);
+            writeLog('onRequestChat', data);
         },
         onEngagement: function (data) {
-            if ("Available" === data.status) {
+            if ('Available' === data.status) {
                 createEngagement(data);
-                writeLog("onEngagement", data);
+                writeLog('onEngagement', data);
             }
-            else if ("NotAvailable" === data.status) {
-                writeLog("Agent is not available", data);
+            else if ('NotAvailable' === data.status) {
+                writeLog('onEngagement', data);
             }
             else {
                 if (getEngagementMaxRetries > 0) {
-                    writeLog("Failed to get engagement. Retry number " + getEngagementMaxRetries, data);
-                    getEngagement();
+                    writeLog('Failed to get engagement. Retry number ' + getEngagementMaxRetries, data);
+                    window.setTimeout(getEngagement, 100);
                     getEngagementMaxRetries--;
                 }
             }
@@ -113,11 +113,12 @@ function startChat() {
         LETagVisitorId: engagementData.visitorId || engagementData.svid,
         LETagSessionId: engagementData.sessionId || engagementData.ssid,
         LETagContextId: engagementData.engagementDetails.contextId || engagementData.scid,
-        skill: engagementData.engagementDetails.skillId,
+        skill: engagementData.engagementDetails.skillName,
         engagementId: engagementData.engagementDetails.engagementId || engagementData.eid,
         campaignId: engagementData.engagementDetails.campaignId || engagementData.cid,
         language: engagementData.engagementDetails.language || engagementData.lang
     };
+    writeLog('startChat', chatRequest);
     chat.requestChat(chatRequest);
 }
 
@@ -139,8 +140,8 @@ function addLines(data) {
 
 //Create a chat line
 function createLine(line) {
-    var div = document.createElement("P");
-    div.innerHTML = "<b>" + line.by + "</b>: ";
+    var div = document.createElement('P');
+    div.innerHTML = '<b>' + line.by + '</b>: ';
     if (line.source === 'visitor') {
         div.appendChild(document.createTextNode(line.text));
     } else {
@@ -181,11 +182,11 @@ function sendLine() {
         chat.addLine({
             text: text,
             error: function () {
-                line.className = "error";
+                line.className = 'error';
             }
         });
         addLineToDom(line);
-        $textline.val("");
+        $textline.val('');
         scrollToBottom();
     }
 }
@@ -195,7 +196,7 @@ function keyChanges(e) {
     e = e || window.event;
     var key = e.keyCode || e.which;
     if (key == 13) {
-        if (e.type == "keyup") {
+        if (e.type == 'keyup') {
             sendLine();
             setVisitorTyping(false);
         }
@@ -242,19 +243,22 @@ function sendEmail() {
 
 //Sets the local chat state
 function updateChatState(data){
+    if (data.state === 'ended' && chatState !== 'ended') {
+        chat.disposeVisitor();
+    }
     chatState = data.state;
 }
 
 function agentTyping(data) {
     if (data.agentTyping) {
-        chatWindow.setFooterContent("Agent is typing...");
+        chatWindow.setFooterContent('Agent is typing...');
     } else {
-        chatWindow.setFooterContent("");
+        chatWindow.setFooterContent('');
     }
 }
 
 function bindInputForChat() {
-    chatContainer.find('#sendButton').removeAttr("disabled").click(sendLine);
+    chatContainer.find('#sendButton').removeAttr('disabled').click(sendLine);
     chatContainer.find('#chatInput').keyup(keyChanges).keydown(keyChanges);
 }
 
@@ -270,22 +274,19 @@ function bindEvents() {
 }
 
 function writeLog(logName, data) {
-    var log = document.createElement("DIV");
+    var log = document.createElement('DIV');
     try {
         data = typeof data === 'string' ? data : JSON.stringify(data);
     } catch (exc) {
         return;
     }
-    var date = new Date();
-    date = "" + (date.getHours() > 10 ? date.getHours() : "0" + date.getHours()) +
-        ":" + (date.getMinutes() > 10 ? date.getMinutes() : "0" + date.getMinutes()) +
-        ":" + (date.getSeconds() > 10 ? date.getSeconds() : "0" + date.getSeconds());
-    log.innerHTML = date + " " + logName + " : " + data;
+    var time = new Date().toTimeString().slice(0,8);
+    log.innerHTML = time + ' ' + logName + (data ? ' : ' + data : '');
     if (!logsStarted) {
-        document.getElementById("logs").appendChild(log);
+        document.getElementById('logs').appendChild(log);
         logsStarted = true;
     } else {
-        document.getElementById("logs").insertBefore(log, logsLastChild);
+        document.getElementById('logs').insertBefore(log, logsLastChild);
     }
     logsLastChild = log;
 

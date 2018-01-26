@@ -27,4 +27,5 @@ Getting Started for monitored flow
 1. Login to your site
 2. Run "index.html"
 3. Add query params to the index.html?site={siteId}&lptag=true
+    - If your chat button is an embedded button, add query param &divid={button div id} 
 4. Click the chat button to start chat
